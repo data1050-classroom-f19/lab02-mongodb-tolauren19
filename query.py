@@ -22,9 +22,15 @@ def query1(minFare, maxFare):
     Returns:
         An array of documents.
     """
-    docs = db.taxi.find(
-        # TODO: implement me
-    )
+    docs = db.taxi.find( 
+        {"fare_amount" : { "$lte": maxFare, "$gte": minFare } },
+        {
+            '_id': 0,
+            'pickup_longitude': 1,
+            'pickup_latitude' : 1, 
+            'fare_amount' : 1
+        }
+        )
 
     result = [doc for doc in docs]
     return result
@@ -77,7 +83,18 @@ def query3():
         An array of documents.
     """
     docs = db.airbnb.aggregate(
-        # TODO: implement me
+        [
+            {
+                '$group': 
+                {'_id' : '$neighbourhood_group',
+                'avg_price': {'$avg' : "$price" }
+                }
+            },
+
+            {
+                '$sort': {'avg_price': -1}
+            }
+        ]
     )
 
     result = [doc for doc in docs]
@@ -95,18 +112,26 @@ def query4():
         An array of documents.
     """
     docs = db.taxi.aggregate(
-        # TODO: implement me
+        [
+            {
+                '$group': 
+                {'_id' : {"$hour":"$pickup_datetime"},
+                'avg_fare': {'$avg' : "$fare_amount" },
+                'count': {'$sum' : '$key'}
+                }
+            },
+
+            {
+                '$sort': {'avg_fare': -1}
+            }
+        ]
     )
     result = [doc for doc in docs]
     return result
 
 
-def query5():
+def query5(longitude, latitude):
     """ Finds airbnbs within 1000 meters from location (longitude, latitude) using geoNear. 
-        Find average fare for each hour.
-        Find average manhattan distance travelled for each hour.
-        Count total number of rides per pickup hour.
-        Sort by average fare in descending order.
 
     Projection:
         dist
@@ -119,8 +144,34 @@ def query5():
 
 
     """
-    docs = db.airbnb.aggregate(
-        # TODO: implement me
+    docs = db.airbnb.aggregate([
+       {
+           '$geoNear': {
+               'near': {'type': 'Point', 'coordinates': [longitude, latitude]},
+               'distanceField': 'dist.calculated',
+               'maxDistance': 1000,
+               'spherical': False
+           }
+       },
+       {
+           '$project': {
+               '_id': 0,
+               'dist': 1,
+               'name': 1,
+               'neighbourhood': 1,
+               'neighbourhood_group': 1,
+               'price': 1,
+               'room_type': 1
+           }
+       },
+       {
+           '$sort': {'dist': -1}
+       }
+       ]
     )
     result = [doc for doc in docs]
     return result
+
+results = query4()
+print(results)
+#print(query2('private room', 10))

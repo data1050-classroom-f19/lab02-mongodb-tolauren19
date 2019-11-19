@@ -56,20 +56,6 @@ def load_taxi(file):
     df = pds.read_csv(file)
     for i, row in df.iterrows():
         d = row.to_dict()
-        d['pickup'] = {
-            'type': 'Point',
-            'coordinates': [
-                d['pickup_longitude'], d['pickup_latitude']
-            ]}
-        d['dropoff'] = {
-            'type': 'Point',
-            'coordinates': [
-                d['dropoff_longitude'], d['dropoff_latitude']
-            ]}
-        d.pop('pickup_longitude')
-        d.pop('pickup_latitude')
-        d.pop('dropoff_longitude')
-        d.pop('dropoff_latitude')
         arr.append(d.copy())
     print("Taxi document fields: ", arr[0].keys())
 
