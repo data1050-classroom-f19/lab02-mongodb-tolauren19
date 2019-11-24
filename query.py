@@ -117,7 +117,18 @@ def query4():
                 '$group': 
                 {'_id' : {"$hour":"$pickup_datetime"},
                 'avg_fare': {'$avg' : "$fare_amount" },
-                'count': {'$sum' : '$key'}
+                'avg_dist': {'$avg':{
+                    '$add': [
+                        {'abs': {
+                            '$subtract': ['$pickup_longitude', '$dropoff_longitude']}
+                        },
+                        {'$abs': {
+                            '$subtract': ['$pickup_latitude', '$dropoff_latitude']}
+                        }
+                    ]
+                }
+                },
+                'count': {'$sum' : 1}
                 }
             },
 
